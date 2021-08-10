@@ -316,6 +316,28 @@ def _new_route(self, request, path_components):
         for page in subpages:
             if page.slug == child_slug:
                 return page.specific.route(request, remaining_components)
+
+
+        # Slug not found in current language - but maybe it's for some other
+        # language.
+        #
+        # Without this, there's no way to create a link to a page without
+        # specifying a fixed language in it.
+        current_language = get_language()
+
+        try:
+            for language in mt_settings.AVAILABLE_LANGUAGES:
+                if current_language == language:
+                    next
+
+                trans_real.activate(language)
+
+                for page in subpages:
+                    if page.slug == child_slug:
+                        return page.specific.route(request, remaining_components)
+        finally:
+            trans_real.activate(current_language)
+
         raise Http404
 
     else:
