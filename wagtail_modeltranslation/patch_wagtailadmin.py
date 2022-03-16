@@ -31,6 +31,7 @@ try:
     from wagtail.images.edit_handlers import ImageChooserPanel
     from wagtail.search.index import SearchField
     from wagtail.snippets.views.snippets import SNIPPET_EDIT_HANDLERS
+    from wagtail.core.models.sites import SiteRootPath
 except ImportError:
     from wagtail.contrib.wagtailroutablepage.models import RoutablePageMixin
     from wagtail.wagtailadmin.edit_handlers import FieldPanel, \
@@ -445,7 +446,12 @@ def _localized_site_get_site_root_paths():
     result = cache.get(cache_key)
 
     if result is None:
-        if VERSION >= (2, 11):
+        if VERSION >= (2, 16):
+            result = [
+                SiteRootPath(site.id, site.root_page.url_path, site.root_url, site.root_page.locale.language_code)
+                for site in Site.objects.select_related('root_page').order_by('-root_page__url_path')
+            ]
+        elif VERSION >= (2, 11):
             result = [
                 (site.id, site.root_page.url_path, site.root_url, site.root_page.locale.language_code)
                 for site in Site.objects.select_related('root_page').order_by('-root_page__url_path')
