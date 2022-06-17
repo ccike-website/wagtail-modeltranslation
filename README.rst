@@ -1,6 +1,5 @@
-================
 Wagtail Modeltranslation
-================
+========================
 
 This app is built using core features of django-modeltranslation: https://github.com/deschler/django-modeltranslation
 
@@ -36,7 +35,7 @@ Features
 
 
 Caveats
-======
+=======
 
 :code:`wagtail-modeltranslation` patches Wagtail's :code:`Page` model with translation fields
 :code:`title_xx`, :code:`slug_xx`, :code:`seo_title_xx`, :code:`search_description_xx` and :code:`url_path_xx` where "xx" represents the language code for each translated language. This
@@ -100,6 +99,30 @@ Quick start
 
 9. If you're adding :code:`wagtail-modeltranslation` to an existing site run :code:`python manage.py update_translation_fields`
 
+
+Supported versions
+==================
+
+.. list-table:: Title
+   :widths: 25 25 25 25
+   :header-rows: 1
+
+   * - wagtail-modeltranslation release
+     - Compatible Wagtail versions
+     - Compatible Django versions
+     - Compatible Python versions
+   * - 0.10
+     - >= 1.12, < 2.12
+     - >= 1.11
+     - 2.7, 3.4, 3.5, 3.6
+   * - 0.11
+     - >= 2.13, < 3.0
+     - >= 3.0
+     - 3.6, 3.7, 3.8, 3.9
+   * - 0.12
+     - >= 3.0
+     - >= 3.2
+     - 3.7, 3.8, 3.9, 3.10
 
 Upgrade considerations (v0.10.8)
 ================================
