@@ -14,17 +14,14 @@ from django.utils.translation import trans_real
 from modeltranslation import settings as mt_settings
 from modeltranslation.translator import NotRegistered, translator
 from modeltranslation.utils import build_localized_fieldname, get_language
-from wagtail.admin.edit_handlers import (
-    FieldPanel, FieldRowPanel, InlinePanel, MultiFieldPanel, ObjectList,
-    RichTextFieldPanel, StreamFieldPanel,
-    extract_panel_definitions_from_model_class)
+from wagtail.admin.panels import (FieldPanel, FieldRowPanel, InlinePanel,
+                                  MultiFieldPanel, ObjectList,
+                                  extract_panel_definitions_from_model_class)
 from wagtail.contrib.routable_page.models import RoutablePageMixin
+from wagtail.coreutils import WAGTAIL_APPEND_SLASH
 from wagtail.fields import StreamField, StreamValue
 from wagtail.models import Page, Site, SiteRootPath
-from wagtail.coreutils import WAGTAIL_APPEND_SLASH
-from wagtail.images.edit_handlers import ImageChooserPanel
 from wagtail.search.index import SearchField
-from wagtail.snippets.views.snippets import SNIPPET_EDIT_HANDLERS
 from wagtail.url_routing import RouteResult
 
 from wagtail_modeltranslation.patch_wagtailadmin_forms import \
@@ -35,7 +32,7 @@ from wagtail_modeltranslation.settings import (CUSTOM_COMPOSED_PANELS,
                                                TRANSLATE_SLUGS)
 from wagtail_modeltranslation.utils import compare_class_tree_depth
 
-SIMPLE_PANEL_CLASSES = [FieldPanel, ImageChooserPanel, StreamFieldPanel, RichTextFieldPanel] + CUSTOM_SIMPLE_PANELS
+SIMPLE_PANEL_CLASSES = [FieldPanel] + CUSTOM_SIMPLE_PANELS
 COMPOSED_PANEL_CLASSES = [MultiFieldPanel, FieldRowPanel] + CUSTOM_COMPOSED_PANELS
 INLINE_PANEL_CLASSES = [InlinePanel] + CUSTOM_INLINE_PANELS
 
@@ -138,8 +135,8 @@ class WagtailTranslator(object):
             panels = extract_panel_definitions_from_model_class(model)
             translation_registered_fields = translator.get_options_for_model(model).fields
             panels = list(filter(lambda field: field.field_name not in translation_registered_fields, panels))
-            edit_handler = ObjectList(panels)
-            SNIPPET_EDIT_HANDLERS[model] = edit_handler.bind_to_model(model=model)
+            panel = ObjectList(panels)
+            model.edit_handler = panel.bind_to_model(model=model)
 
     def _patch_panels(self, panels_list, related_model=None):
         """
@@ -229,6 +226,11 @@ class WagtailTranslator(object):
         except NotRegistered:
             pass
         else:
+            if not hasattr(related_model, 'panels'):
+                panels = extract_panel_definitions_from_model_class(related_model)
+                translation_registered_fields = translator.get_options_for_model(related_model).fields
+                panels = list(filter(lambda field: field.field_name not in translation_registered_fields, panels))
+                related_model.panels = panels
             related_model.panels = self._patch_panels(getattr(related_model, 'panels', []), related_model)
 
         # The original panel is returned as only the related_model panels need to be
@@ -571,7 +573,7 @@ def _patch_stream_field_meaningful_value(field):
 
 
 def patch_wagtail_models():
-    # After all models being registered the Page or BaseSetting subclasses and snippets are patched
+    # After all models being registered the Page or BaseSiteSetting subclasses and snippets are patched
     registered_models = translator.get_registered_models()
 
     # We need to sort the models to ensure that subclasses of a model are registered first,
